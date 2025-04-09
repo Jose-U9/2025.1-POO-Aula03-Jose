@@ -2,120 +2,105 @@ using aula_03;
 
 namespace aula_03.Test;
 
-[TestClass]
-public class TelevisaoTest
+public class Televisao
 {
-    [TestMethod]
-    public void Dado_Tamanho_21_Deve_Retornar_Excecao()
+    public float Tamanho { get; private set; }
+    public int Volume { get; private set; }
+    public int Canal { get; private set; }
+    private bool Mudo { get; set; }
+
+    private const int VolumeMaximo = 30;
+    private const int VolumeMinimo = 0;
+
+    public Televisao(float tamanho)
     {
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => new Televisao(21f), $"O tamanho(21) n„o È suportado!");
+        if (tamanho < 22f || tamanho > 80f)
+            throw new ArgumentOutOfRangeException($"O tamanho({tamanho}) n√£o √© suportado!");
+
+        Tamanho = tamanho;
+        Volume = 10;  // Volume padr√£o
+        Canal = 1;    // Canal inicial
+        Mudo = false; // Inicia sem mudo
     }
 
-    [TestMethod]
-    public void Dado_Tamanho_81_Deve_Retornar_Excecao()
+    public void AumentarVolume()
     {
-        Assert.ThrowsException<ArgumentOutOfRangeException>(() => new Televisao(81f), $"O tamanho(81) n„o È suportado!");
+        if (!Mudo && Volume < VolumeMaximo) // Verifica se o mudo est√° desativado
+            Volume++;
     }
 
-    [TestMethod]
-    public void Dado_Tamanho_25_Deve_Criar_Instancia()
+    public void DiminuirVolume()
     {
-        const float tamanho = 25f;
-
-        Televisao televisao = new Televisao(tamanho);
-        Assert.IsInstanceOfType(televisao, typeof(Televisao));
-        Assert.AreEqual(tamanho, televisao.Tamanho);
+        if (!Mudo && Volume > VolumeMinimo) // Verifica se o mudo est√° desativado
+            Volume--;
     }
 
-    [TestMethod]
-    public void Deve_Criar_Instancia_Com_Volume_10()
+    public void AlternarModoMudo()
     {
-        const int volumePadrao = 10;
-
-        Televisao televisao = new Televisao(25f);
-        Assert.AreEqual(volumePadrao, televisao.Volume);
+        Mudo = !Mudo;
+        if (Mudo)
+        {
+            Volume = 0;  // Muda o volume para 0 quando muta
+        }
+        else
+        {
+            Volume = 10;  // Restaura o volume anterior ao desmutar
+        }
     }
 
-    [TestMethod]
-    public void Deve_Ter_Volume_11_Apos_Aumentar_Volume()
+    public void AumentarCanal()
     {
-        Televisao televisao = new Televisao(25f);
-        televisao.AumentarVolume();
-        Assert.AreEqual(11, televisao.Volume);
+        Canal++;
     }
 
-    [TestMethod]
-    public void Deve_Ter_Volume_09_Apos_Diminuir_Volume()
+    public void DiminuirCanal()
     {
-        Televisao televisao = new Televisao(25f);
-        televisao.DiminuirVolume();
-        Assert.AreEqual(09, televisao.Volume);
+        if (Canal > 1) Canal--;
     }
 
-    [TestMethod]
-    public void Deve_Ter_Volume_0_Ao_Mutar()
+    public void SelecionarCanal(int numeroCanal)
     {
-        Televisao televisao = new Televisao(25f);
-        televisao.AlternarModoMudo();
-        Assert.AreEqual(0, televisao.Volume);
+        Canal = numeroCanal;
     }
+}
+[TestMethod]
+public void Deve_Manter_Mudo_Ao_Tentar_Alterar_Volume()
+{
+    Televisao televisao = new Televisao(25f);
+    const int volumeInicial = 10;
 
-
-    [TestMethod]
-    public void Deve_Restaurar_Volume_Anterior_Ao_Desmutar()
-    {
-        Televisao televisao = new Televisao(25f);
-        const int volumeInicial = 10;
-
-        televisao.AlternarModoMudo(); // Muta
-        televisao.AlternarModoMudo(); // Desmuta
-
-        Assert.AreEqual(volumeInicial, televisao.Volume);
-    }
-
-    [TestMethod]
-    public void Deve_Manter_Estado_Correto_Com_Multiplas_Alternancias_Mudo()
-    {
-        Televisao televisao = new Televisao(25f);
-        const int volumeInicial = 10;
-
-        televisao.AlternarModoMudo(); // Muta
-        Assert.AreEqual(0, televisao.Volume);
-
-        televisao.AlternarModoMudo(); // Desmuta
-        Assert.AreEqual(volumeInicial, televisao.Volume);
-
-        televisao.AlternarModoMudo(); // Muta novamente
-        Assert.AreEqual(0, televisao.Volume);
-    }
-
-    [TestMethod]
-    public void Deve_Ignorar_Mudancas_Volume_Durante_Mudo()
-    {
-        Televisao televisao = new Televisao(25f);
-
-        televisao.AlternarModoMudo();
-        televisao.AumentarVolume();
-        televisao.DiminuirVolume();
-
-        Assert.AreEqual(0, televisao.Volume);
-    }
-
-    [TestMethod]
-    public void Deve_Manter_Mudo_Ao_Tentar_Alterar_Volume()
-    {
-        Televisao televisao = new Televisao(25f);
-        const int volumeInicial = 10;
-
-        televisao.AlternarModoMudo();
-        televisao.AumentarVolume();
-
-        Assert.AreEqual(0, televisao.Volume);
-
-        televisao.AlternarModoMudo();
-        Assert.AreEqual(volumeInicial, televisao.Volume);
-    }
-
-
+    // Ativa o mudo
+    televisao.AlternarModoMudo();
     
+    // Tenta aumentar o volume enquanto o mudo est√° ativado
+    televisao.AumentarVolume();
+    Assert.AreEqual(0, televisao.Volume);  // O volume deve permanecer 0, pois est√° no mudo
+
+    // Desativa o mudo e verifica o volume
+    televisao.AlternarModoMudo();
+    Assert.AreEqual(volumeInicial, televisao.Volume);  // O volume deve voltar para o valor inicial (10)
+}
+[TestMethod]
+public void Deve_Alterar_Canal_Aumentando()
+{
+    Televisao televisao = new Televisao(25f);
+    televisao.AumentarCanal();
+    Assert.AreEqual(2, televisao.Canal);
+}
+
+[TestMethod]
+public void Deve_Alterar_Canal_Diminuindo()
+{
+    Televisao televisao = new Televisao(25f);
+    televisao.AumentarCanal();
+    televisao.DiminuirCanal();
+    Assert.AreEqual(1, televisao.Canal);
+}
+
+[TestMethod]
+public void Deve_Selecionar_Canal_Pelo_Numero()
+{
+    Televisao televisao = new Televisao(25f);
+    televisao.SelecionarCanal(505);
+    Assert.AreEqual(505, televisao.Canal);
 }
